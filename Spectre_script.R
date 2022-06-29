@@ -65,7 +65,7 @@ meta.dat
 ##Select metadata columns to be added
 setwd(MetaDirectory)
 
-sample.info <- meta.dat[,c(1:4)] #Only first four columns will be added
+sample.info <- meta.dat[,c(1:5)] #All columns will be added
 sample.info
 
 ##Add metadata to cell.dat
@@ -74,16 +74,16 @@ cell.dat
 as.matrix(names(cell.dat)) #Check columns
 
 ##Specifiy columns which represent cellular features
-cellular.cols <- names(cell.dat)[c(1:15)]
+cellular.cols <- names(cell.dat)[c(1:3, 5:15)]
 as.matrix(cellular.cols)
 
 
 ##Specifiy columns for tSNE/UMAP clustering
-cluster.cols <- names(cell.dat)[c(1:15)]
+cluster.cols <- names(cell.dat)[c(1:3, 5:15)]
 as.matrix(cluster.cols)
 
 #Specifiy sample, group and batch columns
-exp.name <- "Old Cyp11a1 Phenotyping (1)"
+exp.name <- "CITE-Seq (2)"
 sample.col <- "Sample"
 group.col <- "Group"
 batch.col <- "Batch"
@@ -92,7 +92,7 @@ batch.col <- "Batch"
 ##Determine number for downsampling for dimensionality reduction
 data.frame(table(cell.dat[[group.col]])) # Check number of cells per sample
 
-sub.targets <- c(2000, 2000, 2000) # target subsample numbers from each group
+sub.targets <- c(5000, 5000, 5000, 5000) # target subsample numbers from each group
 sub.targets
 
 
@@ -105,20 +105,15 @@ setwd("Output - clustering")
 cell.dat <- run.flowsom(cell.dat, cluster.cols, meta.k = "auto") #auto clusters
 fwrite(cell.dat, "clustered.data.csv")
 
+
 ##Dimensionality reduction
 cell.sub <- do.subsample(cell.dat, sub.targets, group.col)
 cell.sub <- run.umap(cell.sub, cluster.cols) #umap choosen
-
 fwrite(cell.sub, "clustered.data.DR.csv")
 
 ##Visualise dimensionality reduction (DR) plots - metaclusters
 make.colour.plot(cell.sub, "UMAP_X", "UMAP_Y", "FlowSOM_metacluster", col.type = 'factor', add.label = TRUE)
 make.multi.plot(cell.sub, "UMAP_X", "UMAP_Y", cellular.cols)
-make.multi.plot(cell.sub, "UMAP_X", "UMAP_Y", "FlowSOM_metacluster", group.col, col.type = 'factor')
-make.multi.plot(cell.sub, "UMAP_X", "UMAP_Y", "FlowSOM_cluster", col.type = 'factor', plot.width = 20, plot.height = 20)
-make.multi.plot(cell.sub, "UMAP_X", "UMAP_Y", "Group", col.type = 'factor', plot.width = 10, plot.height = 10)
-make.multi.plot(cell.sub, "UMAP_X", "UMAP_Y", "Sample", col.type = 'factor', plot.width = 10, plot.height = 10)
-
 
 ##Expression heatmaps
 exp <- do.aggregate(cell.dat, cellular.cols, by = "FlowSOM_metacluster")
@@ -146,15 +141,15 @@ setwd("Output 4 - summary data")
 variance.test <- 'kruskal.test'
 pairwise.test <- "wilcox.test"
 
-comparisons <- list(c("WT", "Mb1Cyp11a1KO", "Mb1_E1020KCyp11a1KO"))
+comparisons <- list(c("WT", "BCL6", "E1020K", "E1020K_BCL6"))
 comparisons
 
-grp.order <- c("WT", "Mb1Cyp11a1KO", "Mb1E1020KCyp11a1KO")
+grp.order <- c("WT", "BCL6", "E1020K", "E1020K_BCL6")
 grp.order
 
 ##Specifiy columns to measure MFI on
 as.matrix(cellular.cols)
-dyn.cols <- cellular.cols[c(5,13)] #CXCR4 and CD95
+dyn.cols <- cellular.cols[c(5,10)] #CD19 and CD3
 dyn.cols
 
 ##Create a summary table
@@ -168,7 +163,7 @@ sum.dat
 as.matrix(names(sum.dat))
 
 ##Specifiy which columns to plot
-plot.cols <- names(sum.dat)[c(4:15)]
+plot.cols <- names(sum.dat)[c(4:12)]
 plot.cols
 
 ##Re-order summary data
@@ -218,7 +213,7 @@ make.pheatmap(sum.dat.z,
               plot.title = 'Z-score',
               dendrograms = 'column',
               row.sep = t.first,
-              cutree_cols = 3)
+              cutree_cols = 4)
 
 ####Output session info####
 ### Session info and metadata
